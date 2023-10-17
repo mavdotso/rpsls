@@ -1,0 +1,251 @@
+{
+	"compiler": {
+		"version": "0.4.26+commit.4563c3fc"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"constant": true,
+				"inputs": [
+					{
+						"name": "_c1",
+						"type": "uint8"
+					},
+					{
+						"name": "_c2",
+						"type": "uint8"
+					}
+				],
+				"name": "win",
+				"outputs": [
+					{
+						"name": "w",
+						"type": "bool"
+					}
+				],
+				"payable": false,
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"constant": false,
+				"inputs": [],
+				"name": "j2Timeout",
+				"outputs": [],
+				"payable": false,
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"constant": true,
+				"inputs": [],
+				"name": "stake",
+				"outputs": [
+					{
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"payable": false,
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"constant": true,
+				"inputs": [],
+				"name": "c2",
+				"outputs": [
+					{
+						"name": "",
+						"type": "uint8"
+					}
+				],
+				"payable": false,
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"constant": true,
+				"inputs": [],
+				"name": "c1Hash",
+				"outputs": [
+					{
+						"name": "",
+						"type": "bytes32"
+					}
+				],
+				"payable": false,
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"constant": false,
+				"inputs": [
+					{
+						"name": "_c2",
+						"type": "uint8"
+					}
+				],
+				"name": "play",
+				"outputs": [],
+				"payable": true,
+				"stateMutability": "payable",
+				"type": "function"
+			},
+			{
+				"constant": true,
+				"inputs": [],
+				"name": "j2",
+				"outputs": [
+					{
+						"name": "",
+						"type": "address"
+					}
+				],
+				"payable": false,
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"constant": true,
+				"inputs": [],
+				"name": "lastAction",
+				"outputs": [
+					{
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"payable": false,
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"constant": false,
+				"inputs": [
+					{
+						"name": "_c1",
+						"type": "uint8"
+					},
+					{
+						"name": "_salt",
+						"type": "uint256"
+					}
+				],
+				"name": "solve",
+				"outputs": [],
+				"payable": false,
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"constant": true,
+				"inputs": [],
+				"name": "j1",
+				"outputs": [
+					{
+						"name": "",
+						"type": "address"
+					}
+				],
+				"payable": false,
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"constant": false,
+				"inputs": [],
+				"name": "j1Timeout",
+				"outputs": [],
+				"payable": false,
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"constant": true,
+				"inputs": [],
+				"name": "TIMEOUT",
+				"outputs": [
+					{
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"payable": false,
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"name": "_c1Hash",
+						"type": "bytes32"
+					},
+					{
+						"name": "_j2",
+						"type": "address"
+					}
+				],
+				"payable": true,
+				"stateMutability": "payable",
+				"type": "constructor"
+			}
+		],
+		"devdoc": {
+			"methods": {
+				"j1Timeout()": {
+					"details": "Let j2 get the funds back if j1 did not play."
+				},
+				"j2Timeout()": {
+					"details": "Let j1 take back the funds if j2 never play."
+				},
+				"play(uint8)": {
+					"details": "To be called by j2 and provided stake.",
+					"params": {
+						"_c2": "The move submitted by j2."
+					}
+				},
+				"solve(uint8,uint256)": {
+					"details": "To be called by j1. Reveal the move and send the ETH to the winning party or split them.",
+					"params": {
+						"_c1": "The move played by j1.",
+						"_salt": "The salt used when submitting the commitment when the constructor was called."
+					}
+				},
+				"win(uint8,uint8)": {
+					"details": "Is this move winning over the other.",
+					"params": {
+						"_c1": "The first move.",
+						"_c2": "The move the first move is considered again."
+					},
+					"return": "w True if c1 beats c2. False if c1 is beaten by c2 or in case of tie."
+				}
+			}
+		},
+		"userdoc": {
+			"methods": {}
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"rpsls/contracts/RPS.sol": "RPS"
+		},
+		"evmVersion": "byzantium",
+		"libraries": {},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"rpsls/contracts/RPS.sol": {
+			"keccak256": "0x31cdc940c44878c1c900927c2990955e613546cf2952c5d505e7835cdae61465",
+			"urls": [
+				"bzzr://b9bbacdb229547746e83aabb431a29689306bc66610989295a25e96b9841bde3"
+			]
+		}
+	},
+	"version": 1
+}

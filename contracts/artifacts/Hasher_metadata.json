@@ -1,0 +1,68 @@
+{
+	"compiler": {
+		"version": "0.4.26+commit.4563c3fc"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"constant": true,
+				"inputs": [
+					{
+						"name": "_c",
+						"type": "uint8"
+					},
+					{
+						"name": "_salt",
+						"type": "uint256"
+					}
+				],
+				"name": "hash",
+				"outputs": [
+					{
+						"name": "",
+						"type": "bytes32"
+					}
+				],
+				"payable": false,
+				"stateMutability": "view",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"methods": {
+				"hash(uint8,uint256)": {
+					"details": "Give the commitement. Must only be called locally.",
+					"params": {
+						"_c": "The move.",
+						"_salt": "The salt to increase entropy."
+					}
+				}
+			}
+		},
+		"userdoc": {
+			"methods": {}
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"rpsls/contracts/RPS.sol": "Hasher"
+		},
+		"evmVersion": "byzantium",
+		"libraries": {},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"rpsls/contracts/RPS.sol": {
+			"keccak256": "0x31cdc940c44878c1c900927c2990955e613546cf2952c5d505e7835cdae61465",
+			"urls": [
+				"bzzr://b9bbacdb229547746e83aabb431a29689306bc66610989295a25e96b9841bde3"
+			]
+		}
+	},
+	"version": 1
+}
