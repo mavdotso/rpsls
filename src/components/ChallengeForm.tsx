@@ -60,7 +60,7 @@ export default function ChallengeForm() {
                     chain: sepolia,
                     args: [commitment, address],
                     value: stake,
-                    gas: BigInt(utils.parseUnits('1700000', 'wei').toString()),
+                    gas: BigInt(utils.parseUnits('1000000', 'wei').toString()),
                 });
 
                 const transaction = await publicClient.waitForTransactionReceipt({ hash: hash });

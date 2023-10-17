@@ -11,11 +11,11 @@ import { parseEther } from 'viem';
 function PlayComponent(contractAddress: string, bet: number) {
     const [moveValue, setMoveValue] = useState<string>();
 
-    const { data, isLoading, isSuccess, write } = useContractWrite({
-        contractAddress: contractAddress,
-        abi: contractAbi,
-        functionName: 'play',
-    });
+    // const { data, isLoading, isSuccess, write } = useContractWrite({
+    //     contractAddress: contractAddress,
+    //     abi: contractAbi,
+    //     functionName: 'play',
+    // });
 
     return (
         <div className="grid w-full max-w-sm items-center gap-2.5">
@@ -30,7 +30,7 @@ function PlayComponent(contractAddress: string, bet: number) {
                     ))}
                 </div>
             </RadioGroup>
-            <Button onClick={() => write({ args: [moveValue], value: parseEther(`${bet}`) })}>Accept challenge</Button>
+            {/* <Button onClick={() => write({ args: [moveValue], value: parseEther(`${bet}`) })}>Accept challenge</Button> */}
         </div>
     );
 }
