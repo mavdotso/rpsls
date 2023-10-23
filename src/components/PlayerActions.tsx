@@ -36,8 +36,7 @@ export default function PlayerActions({ j2, gameStatus, contractAddress, stake }
     async function submitMove() {
         if (walletClient) {
             try {
-                await getWalletClient();
-                const playerMove = moveValue && MOVES.indexOf(moveValue);
+                const playerMove = moveValue && MOVES.indexOf(moveValue) + 1; // add one because in the contract 0 is null
                 const bet = BigInt(parseEther(stake.toString()));
 
                 const hash = await walletClient.writeContract({
@@ -54,14 +53,14 @@ export default function PlayerActions({ j2, gameStatus, contractAddress, stake }
                 const transaction = await publicClient.waitForTransactionReceipt({ hash: hash });
 
                 if (transaction.status === 'success') {
-                    await fetch('/api/update-status', {
+                    await fetch('/api/update-move', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                         },
                         body: JSON.stringify({ contractAddress, status: 'PLAYER2_JOINED', playerMove }),
                     });
-                    console.log('Move submitted');
+                    console.log('PLAYER2_JOINED');
                 } else {
                 }
             } catch (err) {
@@ -72,12 +71,16 @@ export default function PlayerActions({ j2, gameStatus, contractAddress, stake }
 
     async function solve() {
         if (walletClient) {
-            const res = await await fetch(`/api/get-challenge`, {
+            await getWalletClient();
+
+            const res = await fetch(`/api/get-challenge`, {
                 method: 'POST',
                 body: JSON.stringify({ contractAddress }),
             });
             const data = await res.json();
-            const p1Hash = data.c1Hash;
+            const c1 = data.c1;
+            const salt = process.env.NEXT_PUBLIC_SALT;
+            console.log(address);
 
             const hash = await walletClient.writeContract({
                 address: contractAddress as `0x${string}`,
@@ -85,9 +88,26 @@ export default function PlayerActions({ j2, gameStatus, contractAddress, stake }
                 abi: contractAbi,
                 functionName: 'solve',
                 chain: sepolia,
-                args: [],
+                args: [c1, salt],
                 gas: BigInt(utils.parseUnits('1000000', 'wei').toString()),
             });
+
+            console.log(hash);
+
+            const transaction = await publicClient.waitForTransactionReceipt({ hash: hash });
+
+            console.log(transaction);
+
+            if (transaction.status === 'success') {
+                await fetch('/api/update-status', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ contractAddress, status: 'MOVE_REVEALED' }),
+                });
+                console.log('MOVE_REVEALED');
+            }
         }
     }
 
@@ -96,9 +116,13 @@ export default function PlayerActions({ j2, gameStatus, contractAddress, stake }
     // If player 1
     if (isPlayerOne) {
         if (gameStatus === 'CREATED') {
-            return <Button variant="secondary">Waiting for the opponent</Button>;
+            return (
+                <Button variant="secondary" disabled>
+                    Waiting for the opponent
+                </Button>
+            );
         } else if (gameStatus === 'PLAYER2_JOINED') {
-            return <Button>Reveal the move</Button>;
+            return <Button onClick={solve}>Reveal your move</Button>;
         } else if (gameStatus === 'MOVE_REVEALED') {
             // Add a winning condition
         } else if (gameStatus === 'PLAYER2_TIMEOUT') {
@@ -126,7 +150,11 @@ export default function PlayerActions({ j2, gameStatus, contractAddress, stake }
                 </>
             );
         } else if (gameStatus === 'PLAYER2_JOINED') {
-            return <Button variant="secondary">Waiting for the opponent</Button>;
+            return (
+                <Button variant="secondary" disabled>
+                    Waiting for the opponent
+                </Button>
+            );
         } else if (gameStatus === 'MOVE_REVEALED') {
             // Add a winning condition
         } else if (gameStatus === 'PLAYER1_TIMEOUT') {

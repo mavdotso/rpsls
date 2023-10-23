@@ -44,13 +44,17 @@ export default function ChallengeForm() {
             handleError('Please, connect your wallet');
             return;
         }
+        if (!moveValue) {
+            handleError('Please, select a move');
+            return;
+        }
         if (walletClient) {
             try {
                 await getWalletClient();
-                // const playerMove = utils.formatBytes32String(moveValue || '');
-                const playerMove = moveValue && MOVES.indexOf(moveValue);
-                const salt32 = utils.formatBytes32String(process.env.NEXT_PUBLIC_SALT || '');
-                const commitment = utils.keccak256(utils.defaultAbiCoder.encode(['uint8', 'bytes32'], [playerMove, salt32]));
+                const playerMove = moveValue && MOVES.indexOf(moveValue) + 1; // add one because in the contract 0 is null
+                const salt = process.env.NEXT_PUBLIC_SALT;
+                const commitment = utils.solidityKeccak256(['uint8', 'uint256'], [playerMove, salt]);
+                console.log(commitment);
                 const stake = BigInt(parseEther(bet.toString()));
 
                 const hash = await walletClient.deployContract({
@@ -172,7 +176,7 @@ export default function ChallengeForm() {
                 </CardHeader>
                 <CardContent>
                     {challenges.map((challenge, index) => (
-                        <div className="flex flex-row gap-8 py-4" key={index}>
+                        <div className="flex flex-row gap-8 py-4 items-center" key={index}>
                             <>{index + 1}</>
                             <div>
                                 <p className="text-sm text-secondary-foreground">Contract address:</p> <span className="flex">{shortenAddress(challenge.contractAddress)}</span>
@@ -184,10 +188,10 @@ export default function ChallengeForm() {
                                 <p className="text-sm text-secondary-foreground">Bet:</p> <span className="flex">{challenge.stake} ETH</span>
                             </div>
                             <div>
-                                <p className="text-sm text-secondary-foreground">Status</p> <span className="flex">{challenge.status}</span>
-                            </div>
-                            <div>
-                                <PlayerActions j2={challenge.j2} gameStatus={challenge.status} contractAddress={challenge.contractAddress} stake={challenge.stake} />
+                                <p className="text-sm text-secondary-foreground">Status</p>{' '}
+                                <span className="flex">
+                                    <PlayerActions j2={challenge.j2} gameStatus={challenge.status} contractAddress={challenge.contractAddress} stake={challenge.stake} />
+                                </span>
                             </div>
                         </div>
                     ))}
