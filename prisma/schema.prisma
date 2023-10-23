@@ -10,14 +10,26 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum ChallengeStatus {
+  CREATED
+  PLAYER2_JOINED
+  MOVE_REVEALED
+  COMPLETED
+  PLAYER1_TIMEOUT
+  PLAYER2_TIMEOUT
+}
+
 model Challenge {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  j1         String
-  j2         String
-  c1Hash     String
-  c2         String?
-  stake      Float
-  lastAction DateTime
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id              String          @id @default(auto()) @map("_id") @db.ObjectId
+  contractAddress String          @unique
+  j1              String
+  j2              String
+  c1Hash          String
+  c1              Int?
+  c2              Int?
+  stake           Float
+  lastAction      DateTime
+  status          ChallengeStatus @default(CREATED)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
 }

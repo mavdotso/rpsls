@@ -15,3 +15,9 @@ export async function fetchTokenBalance(address: string) {
     const balance = Number(tokenBalance.formatted);
     return balance;
 }
+
+export function shortenAddress(address: string) {
+    const firstPart = address.slice(0, 5);
+    const lastPart = address.slice(-3);
+    return `${firstPart}...${lastPart}`;
+}

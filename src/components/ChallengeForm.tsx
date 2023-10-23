@@ -14,17 +14,16 @@ import { MOVES } from '@/lib/consts';
 import { useToast } from '@/components/ui/use-toast';
 import { Toaster } from '@/components/ui/toaster';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { createChallenge } from '@/lib/prisma';
 import { parseEther } from 'viem';
 import { publicClient } from '@/lib/viemConfitg';
+import { shortenAddress } from '@/lib/utils';
+import PlayerActions from './PlayerActions';
 
 type Challenge = {
     contractAddress: string;
-    opponentAddress: string;
-    isActive: boolean;
-    bet: number;
-    userMove: string;
-    opponentMove: string;
+    j2: string;
+    stake: number;
+    status: string;
 };
 
 export default function ChallengeForm() {
@@ -48,9 +47,10 @@ export default function ChallengeForm() {
         if (walletClient) {
             try {
                 await getWalletClient();
-                const playerMove = utils.formatBytes32String(moveValue || '');
-                const salt32 = utils.formatBytes32String(process.env.SALT || '');
-                const commitment = utils.keccak256(utils.defaultAbiCoder.encode(['bytes32', 'bytes32'], [playerMove, salt32]));
+                // const playerMove = utils.formatBytes32String(moveValue || '');
+                const playerMove = moveValue && MOVES.indexOf(moveValue);
+                const salt32 = utils.formatBytes32String(process.env.NEXT_PUBLIC_SALT || '');
+                const commitment = utils.keccak256(utils.defaultAbiCoder.encode(['uint8', 'bytes32'], [playerMove, salt32]));
                 const stake = BigInt(parseEther(bet.toString()));
 
                 const hash = await walletClient.deployContract({
@@ -58,19 +58,30 @@ export default function ChallengeForm() {
                     account: address,
                     bytecode: `0x${contractBytecode}`,
                     chain: sepolia,
-                    args: [commitment, address],
+                    args: [commitment, opponentAddress],
                     value: stake,
-                    gas: BigInt(utils.parseUnits('500000', 'wei').toString()),
+                    gas: BigInt(utils.parseUnits('1000000', 'wei').toString()),
                 });
+
+                setIsDeploying(true);
 
                 const transaction = await publicClient.waitForTransactionReceipt({ hash: hash });
 
                 if (transaction.status === 'success') {
-                    // @ts-ignore
-                    await createChallenge(address, opponentAddress, commitment, bet);
+                    const contractAddress = transaction.contractAddress;
+                    const from = transaction.from;
+                    await fetch('/api/create-challenge', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ contractAddress, from, opponentAddress, commitment, bet, playerMove }),
+                    });
+                    setIsDeploying(false);
                     handleSuccess('Your opponent has been challenged!');
                 } else {
                     handleError();
+                    setIsDeploying(false);
                 }
             } catch (err) {
                 console.log(err);
@@ -94,6 +105,22 @@ export default function ChallengeForm() {
             title: 'Success!',
             description: successMessage,
         });
+    }
+
+    useEffect(() => {
+        if (isConnected && address) {
+            fetchChallenges(address);
+        }
+    }, [address, isConnected, isDeploying]);
+
+    async function fetchChallenges(userAddress: string) {
+        const res = await fetch(`/api/get-challenges`, {
+            method: 'POST',
+            body: JSON.stringify({ userAddress }),
+        });
+        const data = await res.json();
+
+        setChallenges([...data]);
     }
 
     return (
@@ -145,12 +172,23 @@ export default function ChallengeForm() {
                 </CardHeader>
                 <CardContent>
                     {challenges.map((challenge, index) => (
-                        <div key={index}>
-                            <div>Contract address: {challenge.contractAddress}</div>
-                            <div>Opponent address: {challenge.opponentAddress}</div>
-                            <div>Bet: {challenge.bet}</div>
-                            <div>Your move: {challenge.userMove}</div>
-                            <div>Opponent move: {challenge.opponentMove}</div>
+                        <div className="flex flex-row gap-8 py-4" key={index}>
+                            <>{index + 1}</>
+                            <div>
+                                <p className="text-sm text-secondary-foreground">Contract address:</p> <span className="flex">{shortenAddress(challenge.contractAddress)}</span>
+                            </div>
+                            <div>
+                                <p className="text-sm text-secondary-foreground">Opponent address:</p> <span className="flex">{shortenAddress(challenge.j2)}</span>
+                            </div>
+                            <div>
+                                <p className="text-sm text-secondary-foreground">Bet:</p> <span className="flex">{challenge.stake} ETH</span>
+                            </div>
+                            <div>
+                                <p className="text-sm text-secondary-foreground">Status</p> <span className="flex">{challenge.status}</span>
+                            </div>
+                            <div>
+                                <PlayerActions j2={challenge.j2} gameStatus={challenge.status} contractAddress={challenge.contractAddress} stake={challenge.stake} />
+                            </div>
                         </div>
                     ))}
                 </CardContent>
