@@ -13,7 +13,6 @@ datasource db {
 enum ChallengeStatus {
   CREATED
   PLAYER2_JOINED
-  MOVE_REVEALED
   COMPLETED
   PLAYER1_TIMEOUT
   PLAYER2_TIMEOUT
@@ -24,11 +23,9 @@ model Challenge {
   contractAddress String          @unique
   j1              String
   j2              String
-  c1Hash          String
   c1              Int?
   c2              Int?
   stake           Float
-  lastAction      DateTime
   status          ChallengeStatus @default(CREATED)
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt

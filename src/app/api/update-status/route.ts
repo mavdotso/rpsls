@@ -7,7 +7,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
 
         const updatedChallenge = await prisma.challenge.update({
             where: { contractAddress },
-            data: { status: status },
+            data: { status },
         });
 
         return new NextResponse(JSON.stringify(updatedChallenge), { status: 200 });

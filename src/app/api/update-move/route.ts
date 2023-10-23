@@ -3,11 +3,11 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest, res: NextResponse) {
     try {
-        const { contractAddress, status, playerMove } = await req.json();
+        const { contractAddress, status, c2 } = await req.json();
 
         const updatedChallenge = await prisma.challenge.update({
             where: { contractAddress },
-            data: { status: status, c2: playerMove },
+            data: { status, c2 },
         });
 
         return new NextResponse(JSON.stringify(updatedChallenge), { status: 200 });
