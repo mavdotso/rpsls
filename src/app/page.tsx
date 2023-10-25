@@ -116,7 +116,7 @@ export default function Home() {
     }, [userAddress, isConnected, isDeploying, updateStatus]);
 
     return (
-        <main className="container flex gap-2 flex-wrap">
+        <main className="container flex flex-row gap-2 flex-wrap py-4">
             <ChallengeForm
                 bet={bet}
                 setBet={setBet}

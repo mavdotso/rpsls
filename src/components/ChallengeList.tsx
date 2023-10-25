@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { shortenAddress } from '@/lib/utils';
 import PlayerActions from './PlayerActions';
 import { ExternalLink, RefreshCcw } from 'lucide-react';
@@ -13,7 +14,7 @@ interface ChallengeListProps {
 
 export function ChallengeList({ challenges, updateStatus, handleRefresh }: ChallengeListProps) {
     return (
-        <Card className="w-full">
+        <Card className="flex-grow">
             <CardHeader>
                 <div className="flex justify-between">
                     <div>
@@ -26,27 +27,24 @@ export function ChallengeList({ challenges, updateStatus, handleRefresh }: Chall
                 </div>
             </CardHeader>
             <CardContent>
-                {challenges.map((challenge, index) => (
-                    <div className="flex flex-row gap-8 py-4 items-center" key={index}>
-                        <>{index + 1}</>
-                        <div>
-                            <p className="text-sm text-secondary-foreground">Contract address:</p>{' '}
-                            <span className="flex gap-2 items-center">
+                <div className="grid grid-cols-10 gap-4 py-4 items-center">
+                    <div className="col-span-1 text-sm text-secondary-foreground">#</div>
+                    <div className="col-span-2 text-sm text-secondary-foreground">Contract address:</div>
+                    <div className="col-span-2 text-sm text-secondary-foreground">Opponent address:</div>
+                    <div className="col-span-2 text-sm text-secondary-foreground">Bet:</div>
+                    <div className="col-span-3 text-sm text-secondary-foreground">Status</div>
+                    {challenges.map((challenge, index) => (
+                        <React.Fragment key={index}>
+                            <div className="col-span-1">{index + 1}</div>
+                            <div className="col-span-2 flex gap-2 items-center">
                                 {shortenAddress(challenge.contractAddress)}
                                 <a href={`https://sepolia.etherscan.io/address/${challenge.contractAddress}`}>
                                     <ExternalLink className="w-3 h-3" />
                                 </a>
-                            </span>
-                        </div>
-                        <div>
-                            <p className="text-sm text-secondary-foreground">Opponent address:</p> <span className="flex">{shortenAddress(challenge.j2)}</span>
-                        </div>
-                        <div>
-                            <p className="text-sm text-secondary-foreground">Bet:</p> <span className="flex">{challenge.stake} ETH</span>
-                        </div>
-                        <div>
-                            <p className="text-sm text-secondary-foreground">Status</p>
-                            <span className="flex">
+                            </div>
+                            <div className="col-span-2 flex">{shortenAddress(challenge.j2)}</div>
+                            <div className="col-span-2 flex">{challenge.stake} ETH</div>
+                            <div className="col-span-3 flex">
                                 <PlayerActions
                                     j2={challenge.j2}
                                     gameStatus={challenge.status}
@@ -55,10 +53,10 @@ export function ChallengeList({ challenges, updateStatus, handleRefresh }: Chall
                                     updatedAt={challenge.updatedAt}
                                     updateStatus={updateStatus}
                                 />
-                            </span>
-                        </div>
-                    </div>
-                ))}
+                            </div>
+                        </React.Fragment>
+                    ))}
+                </div>
             </CardContent>
         </Card>
     );

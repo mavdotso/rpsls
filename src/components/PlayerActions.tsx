@@ -87,9 +87,9 @@ export default function PlayerActions({ j2, gameStatus, contractAddress, stake, 
 
     async function handleJ1Timeout() {
         setIsLoading(true);
-
         const hash = await j1Timeout(walletClient, contractAddress, userAddress as `0x${string}`);
         const transaction = await publicClient.waitForTransactionReceipt({ hash: hash });
+        console.log(transaction.status);
         if (transaction.status === 'success') {
             updateStatus(contractAddress, 'COMPLETED');
         }
@@ -98,9 +98,9 @@ export default function PlayerActions({ j2, gameStatus, contractAddress, stake, 
 
     async function handleJ2Timeout() {
         setIsLoading(true);
-
         const hash = await j2Timeout(walletClient, contractAddress, userAddress as `0x${string}`);
         const transaction = await publicClient.waitForTransactionReceipt({ hash: hash });
+        console.log(transaction.status);
         if (transaction.status === 'success') {
             updateStatus(contractAddress, 'COMPLETED');
         }

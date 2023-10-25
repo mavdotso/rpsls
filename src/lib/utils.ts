@@ -35,7 +35,7 @@ export function checkTimeout(gameStatus: string, updatedAt: Date) {
     const timeElapsed = now.getTime() - lastActionDate.getTime();
 
     if (timeElapsed > TIMEOUT_DURATION) {
-        if (gameStatus === 'CREATED' || gameStatus === 'PLAYER2_JOINED') {
+        if (gameStatus === 'CREATED') {
             return 'PLAYER2_TIMEOUT';
         } else if (gameStatus === 'PLAYER2_JOINED') {
             return 'PLAYER1_TIMEOUT';
