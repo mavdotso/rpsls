@@ -26,6 +26,7 @@ model Challenge {
   c1              Int?
   c2              Int?
   stake           Float
+  winner          String?
   status          ChallengeStatus @default(CREATED)
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt

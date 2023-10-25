@@ -1,14 +1,13 @@
 'use client';
-import { Button } from './ui/button';
 import { useWalletClient, useAccount } from 'wagmi';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
-import { MOVES } from '@/lib/consts';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { publicClient } from '@/lib/viemConfitg';
 import { submitMove, solve, j1Timeout, j2Timeout, getWinner } from '@/lib/functions';
 import { getPlayerMoveIndex } from '@/lib/utils';
 import { checkTimeout } from '@/lib/utils';
+
+import { PlayerOneActions } from './actions/PlayerOneActions';
+import { PlayerTwoActions } from './actions/PlayerTwoActions';
 
 interface PlayerActionsProps {
     j2: string;
@@ -16,15 +15,18 @@ interface PlayerActionsProps {
     contractAddress: string;
     stake: number;
     updatedAt: Date;
+    updateStatus: (contractAddress: string, status: string) => Promise<void>;
 }
 
-export default function PlayerActions({ j2, gameStatus, contractAddress, stake, updatedAt }: PlayerActionsProps) {
+export default function PlayerActions({ j2, gameStatus, contractAddress, stake, updatedAt, updateStatus }: PlayerActionsProps) {
     const { data: walletClient } = useWalletClient();
     const { address: userAddress } = useAccount();
     const [playerMove, setPlayerMove] = useState<string>('');
     const [isPlayerOne, setIsPlayerOne] = useState<boolean>(false);
-    const [isJ1Winner, setIsJ1Winner] = useState<boolean>();
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [winner, setWinner] = useState<string | null>(null);
 
+    // Checking player 1 or player 2
     useEffect(() => {
         if (userAddress === j2) {
             setIsPlayerOne(false);
@@ -34,6 +36,7 @@ export default function PlayerActions({ j2, gameStatus, contractAddress, stake, 
     }, [userAddress, j2]);
 
     async function handleSubmitMove() {
+        setIsLoading(true);
         const hash = await submitMove(playerMove, stake, contractAddress, walletClient, userAddress as `0x${string}`);
 
         const transaction = await publicClient.waitForTransactionReceipt({ hash: hash });
@@ -41,18 +44,21 @@ export default function PlayerActions({ j2, gameStatus, contractAddress, stake, 
         const c2 = getPlayerMoveIndex(playerMove);
 
         if (transaction.status === 'success') {
-            await fetch('/api/update-move', {
+            await fetch('/api/update-challenge', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({ contractAddress, status: 'PLAYER2_JOINED', c2 }),
             });
-            console.log('PLAYER2_JOINED');
+            updateStatus(contractAddress, 'PLAYER2_JOINED');
         }
+        setIsLoading(false);
     }
 
     async function handleSolve() {
+        setIsLoading(true);
+
         const res = await fetch(`/api/get-challenge`, {
             method: 'POST',
             body: JSON.stringify({ contractAddress }),
@@ -65,143 +71,85 @@ export default function PlayerActions({ j2, gameStatus, contractAddress, stake, 
         const transaction = await publicClient.waitForTransactionReceipt({ hash: hash });
 
         if (transaction.status === 'success') {
-            await fetch('/api/update-status', {
+            const winner = await getWinner(contractAddress as `0x${string}`, c1, playerMove);
+            const winnerString = winner ? 'j1' : 'j2';
+            await fetch('/api/update-challenge', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ contractAddress, status: 'COMPLETED' }),
+                body: JSON.stringify({ contractAddress, winner: winnerString }),
             });
-
-            const winner = await getWinner(contractAddress as `0x${string}`, c1, playerMove);
-            setIsJ1Winner(!!winner);
+            updateStatus(contractAddress, 'COMPLETED');
         }
+        setIsLoading(false);
     }
 
     async function handleJ1Timeout() {
+        setIsLoading(true);
+
         const hash = await j1Timeout(walletClient, contractAddress, userAddress as `0x${string}`);
         const transaction = await publicClient.waitForTransactionReceipt({ hash: hash });
         if (transaction.status === 'success') {
-            await fetch('/api/update-status', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ contractAddress, status: 'COMPLETED' }),
-            });
+            updateStatus(contractAddress, 'COMPLETED');
         }
+        setIsLoading(false);
     }
 
     async function handleJ2Timeout() {
+        setIsLoading(true);
+
         const hash = await j2Timeout(walletClient, contractAddress, userAddress as `0x${string}`);
         const transaction = await publicClient.waitForTransactionReceipt({ hash: hash });
         if (transaction.status === 'success') {
-            await fetch('/api/update-status', {
+            updateStatus(contractAddress, 'COMPLETED');
+        }
+        setIsLoading(false);
+    }
+
+    const fetchWinner = useCallback(async () => {
+        try {
+            const res = await fetch(`/api/get-challenge`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ contractAddress, status: 'COMPLETED' }),
+                body: JSON.stringify({ contractAddress }),
             });
+
+            if (!res.ok) {
+                throw new Error('Failed to fetch challenge');
+            }
+
+            const data = await res.json();
+            if (data && data.winner) {
+                setWinner(data.winner);
+            } else {
+                console.error('Winner not found');
+            }
+        } catch (error) {
+            console.error('Failed to fetch winner:', error);
         }
-    }
+    }, [contractAddress]);
 
     useEffect(() => {
         const timeoutResult = checkTimeout(gameStatus, updatedAt);
-
-        console.log(timeoutResult);
-
         if (timeoutResult) {
-            fetch('/api/update-status', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ contractAddress, status: timeoutResult }),
-            });
+            updateStatus(contractAddress, timeoutResult);
         }
-    }, [updatedAt, gameStatus, contractAddress]);
+        if (gameStatus === 'COMPLETED') {
+            fetchWinner();
+        }
+    }, [updatedAt, gameStatus, contractAddress, updateStatus, fetchWinner]);
 
-    // If player 1
+    // Rendering different player actions for each player
     if (isPlayerOne) {
-        if (gameStatus === 'PLAYER2_TIMEOUT') {
-            return (
-                <div>
-                    <p>Player 2 timed out</p>
-                    <Button onClick={handleJ2Timeout}>Payout</Button>
-                </div>
-            );
-        } else if (gameStatus === 'CREATED') {
-            return (
-                <Button variant="secondary" disabled>
-                    Waiting for the opponent
-                </Button>
-            );
-        } else if (gameStatus === 'PLAYER2_JOINED') {
-            return <Button onClick={handleSolve}>Reveal your move</Button>;
-        } else if (gameStatus === 'COMPLETED') {
-            if (isJ1Winner) {
-                return (
-                    <Button variant="secondary" disabled>
-                        You win
-                    </Button>
-                );
-            } else {
-                return (
-                    <Button variant="secondary" disabled>
-                        You lost
-                    </Button>
-                );
-            }
-        }
+        return <PlayerOneActions isLoading={isLoading} gameStatus={gameStatus} winner={winner || ''} handleSolve={handleSolve} handleJ2Timeout={handleJ2Timeout} />;
     } else {
-        // if player 2
-        if (gameStatus === 'PLAYER1_TIMEOUT') {
-            return (
-                <div>
-                    <p>Player 1 timed out</p>
-                    <Button onClick={handleJ1Timeout}>Payout</Button>
-                </div>
-            );
-        } else if (gameStatus === 'CREATED') {
-            return (
-                <div>
-                    <div className="grid w-full max-w-sm items-center gap-2.5 pb-2">
-                        <Label htmlFor="move">Your move</Label>
-                        <RadioGroup required id="move" onValueChange={(value) => setPlayerMove(value)}>
-                            <div className="flex items-center gap-2">
-                                {MOVES.map((move, index) => (
-                                    <span key={index} className="flex items-center space-x-2">
-                                        <RadioGroupItem value={move} id={`option-${index}`} />
-                                        <Label htmlFor={`option-${index}`}>{move}</Label>
-                                    </span>
-                                ))}
-                            </div>
-                        </RadioGroup>
-                    </div>
-                    <Button onClick={handleSubmitMove}>Submit a move</Button>
-                </div>
-            );
-        } else if (gameStatus === 'PLAYER2_JOINED') {
-            return (
-                <Button variant="secondary" disabled>
-                    Waiting for the opponent
-                </Button>
-            );
-        } else if (gameStatus === 'COMPLETED') {
-            if (isJ1Winner) {
-                return (
-                    <Button variant="secondary" disabled>
-                        You lost
-                    </Button>
-                );
-            } else {
-                return (
-                    <Button variant="secondary" disabled>
-                        You win
-                    </Button>
-                );
-            }
-        }
+        return (
+            <PlayerTwoActions isLoading={isLoading} gameStatus={gameStatus} winner={winner || ''} handleSubmitMove={handleSubmitMove} handleJ1Timeout={handleJ1Timeout} setPlayerMove={setPlayerMove} />
+        );
     }
+
+    return null;
 }

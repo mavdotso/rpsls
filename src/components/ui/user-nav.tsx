@@ -17,16 +17,9 @@ export function UserNav({ address, tokenBalance, disconnect }: { address: string
                 <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
                         <p className="text-sm font-medium leading-none">Balance</p>
-                        <p className="text-xs leading-none text-muted-foreground">{tokenBalance} ETH</p>
+                        <p className="text-xs leading-none text-muted-foreground">{tokenBalance.toFixed(4)} ETH</p>
                     </div>
                 </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuGroup>
-                    <DropdownMenuItem className="gap-2 cursor-pointer">
-                        <PlusCircle className="w-3 h-3" />
-                        New game
-                    </DropdownMenuItem>
-                </DropdownMenuGroup>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="gap-2 cursor-pointer" onClick={() => disconnect()}>
                     <LogOut className="w-3 h-3" />

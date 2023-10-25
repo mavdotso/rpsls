@@ -1,13 +1,14 @@
+// File: update-challenge.js
 import { prisma } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest, res: NextResponse) {
     try {
-        const { contractAddress, status, c2 } = await req.json();
+        const { contractAddress, ...data } = await req.json();
 
         const updatedChallenge = await prisma.challenge.update({
             where: { contractAddress },
-            data: { status, c2 },
+            data,
         });
 
         return new NextResponse(JSON.stringify(updatedChallenge), { status: 200 });

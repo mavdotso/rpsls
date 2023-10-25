@@ -1,4 +1,3 @@
-import { MOVES } from './consts';
 import { parseEther } from 'viem';
 import { contractAbi, contractBytecode } from '../../contracts/contract';
 import { sepolia } from '@wagmi/core/chains';
@@ -7,12 +6,14 @@ import { publicClient } from './viemConfitg';
 import { getPlayerMoveIndex } from './utils';
 
 const salt = process.env.NEXT_PUBLIC_SALT;
-const gas = BigInt(utils.parseUnits('1000000', 'wei').toString());
+const gas = BigInt(utils.parseUnits('3000000', 'wei').toString());
 
 export async function deployContract(playerMove: string, bet: number, walletClient: any, userAddress: string, opponentAddress: string) {
     const playerMoveIndex = getPlayerMoveIndex(playerMove);
     const commitment = utils.solidityKeccak256(['uint8', 'uint256'], [playerMoveIndex, salt]);
     const betInt = BigInt(parseEther(bet.toString()));
+
+    // const gasPrice = await publicClient.getGasPrice(); // gas price estimation
 
     const hash = await walletClient.deployContract({
         abi: contractAbi,
